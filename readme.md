@@ -64,10 +64,7 @@ PenguinReport works on **most Linux distributions** with little or no modificati
 | Fedora (35+)     | ✅ Tested   |
 | AlmaLinux / Rocky Linux | ✅ Tested |
 | Arch Linux       | ✅ Tested   |
-| Amazon Linux     | ✅ Tested   |
-| Alpine Linux     | ⚠️ Partial Support (BusyBox limitations) |
-| Kali Linux       | ✅ Tested   |
-| RHEL (7/8/9)     | ✅ Tested   |
+
 
 > ℹ️ If you're using a custom or minimal distribution, ensure basic tools like `uname`, `lscpu`, `lsblk`, and your system's package manager (e.g., `dpkg`, `rpm`, or `apk`) are installed.
 
