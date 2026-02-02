@@ -79,7 +79,7 @@ Example Output :
 ### Installation
 
 ```bash
-git clone https://github.com/your-usernamealilotfi23/penguinreport.git
+git clone https://github.com/alilotfi23/penguinreport.git
 cd penguinreport
 chmod +x agent.sh
 ./agent.sh --light
