@@ -127,12 +127,3 @@ MIT License. See `LICENSE` for details.
 
 **Stay light. Stay Linux. Stay penguin. 🐧**
 
----
-
-### What I changed:
-
-* **The "Usage" section:** It now clearly shows the `--full` and `--light` options.
-* **The "Output" section:** It now explains the new `TIMESTAMP_HOST_MODE` naming logic.
-* **Dependencies:** I added a note about `jq` since your script now uses it for beautification.
-
-Would you like me to create a **`CHANGELOG.md`** file for you as well to track these new version 1.0.0 updates?
