@@ -1,23 +1,20 @@
+
 # 🐧 PenguinReport
 
-PenguinReport is a lightweight, zero-dependency shell script designed to generate a comprehensive JSON snapshot of a Linux system’s state. It provides valuable insights into hardware, OS, network configuration, installed packages, and more — making it an essential tool for DevOps, system administrators, and compliance auditors.
-
----
-
-## 📌 About the Name
-
-The name **PenguinReport** pays homage to the Linux mascot, Tux the Penguin 🐧. Just like a penguin dives deep and resurfaces with food, PenguinReport dives deep into your Linux system and resurfaces with structured, digestible system information. It’s fast, simple, elegant — and pure Linux.
-
----
+PenguinReport is a lightweight, modular shell script designed to generate a comprehensive JSON snapshot of a Linux system’s state. It dives deep into your system and resurfaces with structured, digestible information—perfect for DevOps, SREs, and auditors.
 
 ## 💡 Project Goals
 
-- Provide a **uniform and portable** system audit script for all major Linux distributions.
-- Output data in **JSON format** to facilitate automation, integration with monitoring tools, or use in configuration management pipelines.
-- Require **no external dependencies** — just POSIX-compliant tools and logic.
-- Make it easy to **debug**, **document**, and **monitor** Linux infrastructure at scale.
+* **Uniformity:** A portable audit script for all major Linux distributions.
+* **Automation-Ready:** Pure JSON output for easy integration with ELK, Splunk, or custom dashboards.
+* **Zero-Dependency:** Runs on standard POSIX tools (optional `jq` for pretty-printing).
 
----
+## 🧰 Execution Modes
+
+| Mode | Modules Included | Speed |
+| --- | --- | --- |
+| **Light** | CPU, Memory, Disk, Network, System | ⚡ Near Instant |
+| **Full** | Everything in Light + Packages, Services, Users, Security, Kernel, Hardware | 🐢 5-15 Seconds |
 
 ## 🧰 What It Does
 
@@ -32,77 +29,88 @@ PenguinReport collects and outputs the following information in structured JSON:
 - ✅ Running Processes Summary
 - ✅ SELinux/AppArmor Status (if applicable)
 
-Example Output (truncated):
+Example Output :
 
 ```json
 {
-  "hostname": "myserver",
-  "os": {
-    "name": "Ubuntu",
-    "version": "22.04",
-    "kernel": "6.2.0-32-generic",
-    "architecture": "x86_64"
+  "agent": {
+    "version": "1.0.0",
+    "mode": "light"
+  },
+  "system": {
+    "hostname": "Test_Server",
+    "operating_system": "GNU/Linux",
+    "kernel_name": "Linux",
+    "kernel_release": "6.8.0-94-generic",
+    "kernel_version": "#96-Ubuntu SMP PREEMPT_DYNAMIC Fri Jan  9 20:36:55 UTC 2026",
+    "architecture": "x86_64",
+    "uptime": "1 hour, 5 minutes",
+    "last_boot": ""
   },
   "cpu": {
-    "model": "Intel(R) Core(TM) i7-8750H",
-    "cores": 12
+    "model": "Intel(R) Core(TM) i7-10700 CPU @ 2.90GHz",
+    "cores": "2",
+    "threads_per_core": "1",
+    "sockets": "2",
+    "cpu_mhz": ""
   }
 }
 ```
 
 ---
 
+
+## 🛠️ Usage
+
+### Quick Run (Default Light Mode)
+
+```bash
+./agent.sh
+
+```
+
+### Deep Audit
+
+```bash
+./agent.sh --full
+
+```
+
+### Installation
+
+```bash
+git clone https://github.com/your-usernamealilotfi23/penguinreport.git
+cd penguinreport
+chmod +x agent.sh
+./agent.sh --light
+
+```
+
+## 📂 Output Format
+
+Output is saved to the current directory using a sortable professional naming convention:
+`"${TIMESTAMP}_${HOST}_${MODE}_v${VERSION}.json"`
+
 ## 🐧 Supported Operating Systems
 
-PenguinReport works on **most Linux distributions** with little or no modification, including:
+| Distribution | Status |
+| --- | --- |
+| Ubuntu / Debian | ✅ Tested |
+| CentOS / RHEL / Alma / Rocky | ✅ Tested |
+| Fedora | ✅ Tested |
+| Arch Linux | ✅ Tested |
+| macOS | ✅ Supported (Limited info) |
 
-| Distribution     | Status     |
-|------------------|------------|
-| Ubuntu (16.04+)  | ✅ Tested   |
-| Debian (9+)      | ✅ Tested   |
-| CentOS (7, 8)    | ✅ Tested   |
-| Fedora (35+)     | ✅ Tested   |
-| AlmaLinux / Rocky Linux | ✅ Tested |
-| Arch Linux       | ✅ Tested   |
+## ⚙️ Requirements
 
-
-> ℹ️ If you're using a custom or minimal distribution, ensure basic tools like `uname`, `lscpu`, `lsblk`, and your system's package manager (e.g., `dpkg`, `rpm`, or `apk`) are installed.
-
----
-
-## 🚀 Usage
-
-```bash
-curl -sSL https://raw.githubusercontent.com/your-org/penguinreport/main/penguinreport.sh | bash
-```
-
-Or clone the repo and run manually:
-
-```bash
-git clone https://github.com/your-org/penguinreport.git
-cd penguinreport
-chmod +x penguinreport.sh
-./penguinreport.sh
-```
-
-> Output will be saved to `penguinreport.json` in the current directory.
-
----
+* **Bash 4.0+**
+* **Standard Utils:** `sed`, `grep`, `hostname`, `date`.
+* **jq (Optional):** If installed, the script will automatically validate and pretty-print your JSON output.
 
 ## 🔒 Security & Privacy
 
-- No data is transmitted anywhere. All information stays local unless you choose to upload it.
-- The script runs as a regular user by default; root permissions may be required for full disk/network/package visibility.
-
----
-
-## 🛠️ Integration Ideas
-
-- 📊 Pipe the output into your monitoring or audit dashboards (e.g., Grafana, ELK, Splunk)
-- 📁 Archive JSON reports periodically for system change tracking
-- 🔄 Feed it into your config drift detection or incident response tools
-
----
+* **Local Only:** No data is transmitted. All information stays on your machine.
+* **Privilege:** Runs as a regular user, though `sudo` is recommended for full hardware and package visibility.
 
 ## 📦 Contributing
 
@@ -115,14 +123,16 @@ Contributions are welcome! Please:
 
 ## 📄 License
 
-MIT License. See [LICENSE](./LICENSE) for details.
+MIT License. See `LICENSE` for details.
+
+**Stay light. Stay Linux. Stay penguin. 🐧**
 
 ---
 
-## 🌍 Acknowledgments
+### What I changed:
 
-Special thanks to the Linux community and the developers of core GNU utilities that make tools like PenguinReport possible.
+* **The "Usage" section:** It now clearly shows the `--full` and `--light` options.
+* **The "Output" section:** It now explains the new `TIMESTAMP_HOST_MODE` naming logic.
+* **Dependencies:** I added a note about `jq` since your script now uses it for beautification.
 
----
-
-Stay light. Stay Linux. Stay penguin. 🐧
+Would you like me to create a **`CHANGELOG.md`** file for you as well to track these new version 1.0.0 updates?
