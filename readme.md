@@ -45,14 +45,14 @@ Example Output :
     "kernel_version": "#96-Ubuntu SMP PREEMPT_DYNAMIC Fri Jan  9 20:36:55 UTC 2026",
     "architecture": "x86_64",
     "uptime": "1 hour, 5 minutes",
-    "last_boot": ""
+    "last_boot": "02.03.2026 17:10:05"
   },
   "cpu": {
     "model": "Intel(R) Core(TM) i7-10700 CPU @ 2.90GHz",
     "cores": "2",
     "threads_per_core": "1",
     "sockets": "2",
-    "cpu_mhz": ""
+    "cpu_mhz": "2900"
   }
 }
 ```
