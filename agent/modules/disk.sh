@@ -1,14 +1,16 @@
-#!/bin/
+#!/bin/bash
 
 disk_info() {
-    echo "  \"disks\": [" >> "$OUTPUT_FILE"
-    if command -v lsblk >/dev/null 2>&1; then
-        lsblk -J | jq -c '.blockdevices[]' 2>/dev/null | while read -r disk; do
-            echo "    $disk," >> "$OUTPUT_FILE"
-        done
+    echo "  \"disks\": " >> "$OUTPUT_FILE"
+    
+    if command -v lsblk >/dev/null 2>&1 && command -v jq >/dev/null 2>&1; then
+        # Capture the JSON directly, indent it, and append it
+        lsblk -J -o NAME,SIZE,TYPE,MOUNTPOINT,FSTYPE | jq '.blockdevices' >> "$OUTPUT_FILE"
+    else
+        # Fallback if tools are missing
+        echo "[ { \"error\": \"lsblk or jq not found\" } ]" >> "$OUTPUT_FILE"
     fi
-    # Remove trailing comma from last disk entry
-    sed -i '$ s/,$//' "$OUTPUT_FILE" 2>/dev/null
-    echo "  ]," >> "$OUTPUT_FILE"
+    
+    # Add the trailing comma for the next JSON section
+    echo "," >> "$OUTPUT_FILE"
 }
-
