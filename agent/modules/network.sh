@@ -2,32 +2,38 @@
 
 network_info() {
     echo "  \"network\": {" >> "$OUTPUT_FILE"
-    echo "    \"hostname\": \"$(escape_json "$(hostname)")\"," >> "$OUTPUT_FILE"
-    echo "    \"domain\": \"$(escape_json "$(dnsdomainname 2>/dev/null || echo "N/A")")\"," >> "$OUTPUT_FILE"
-    echo "    \"interfaces\": [" >> "$OUTPUT_FILE"
-    if command -v ip >/dev/null 2>&1; then
-        ip -j addr 2>/dev/null | jq -c '.[]' | while read -r interface; do
-            echo "      $interface," >> "$OUTPUT_FILE"
-        done
-    fi
-    # Remove trailing comma from last interface entry
-    sed -i '$ s/,$//' "$OUTPUT_FILE" 2>/dev/null
-    echo "    ]," >> "$OUTPUT_FILE"
-    echo "    \"routing\": {" >> "$OUTPUT_FILE"
-    if command -v ip >/dev/null 2>&1; then
-        echo "      \"default_gateway\": \"$(escape_json "$(ip route | grep default | awk '{print $3}')")\"," >> "$OUTPUT_FILE"
-        echo "      \"routes\": [" >> "$OUTPUT_FILE"
-        ip -j route 2>/dev/null | jq -c '.[]' | while read -r route; do
-            echo "        $route," >> "$OUTPUT_FILE"
-        done
-        # Remove trailing comma from last route entry
-        sed -i '$ s/,$//' "$OUTPUT_FILE" 2>/dev/null
-        echo "      ]" >> "$OUTPUT_FILE"
+
+    # Get the hostname and domain
+    local hostname=$(hostname)
+    local domain=$(hostname -d 2>/dev/null || echo "")
+
+    echo "    \"hostname\": \"$hostname\"," >> "$OUTPUT_FILE"
+    echo "    \"domain\": \"$domain\"," >> "$OUTPUT_FILE"
+
+    # Use 'ip' command's built-in JSON output for interfaces
+    echo -n "    \"interfaces\": " >> "$OUTPUT_FILE"
+    if command -v ip >/dev/null 2>&1 && command -v jq >/dev/null 2>&1; then
+        ip -j addr show | jq -c '.' >> "$OUTPUT_FILE"
     else
-        echo "      \"default_gateway\": \"unknown\"," >> "$OUTPUT_FILE"
-        echo "      \"routes\": []" >> "$OUTPUT_FILE"
+        echo "[]," >> "$OUTPUT_FILE"
     fi
+    echo "," >> "$OUTPUT_FILE"
+
+    # Build the routing section
+    echo "    \"routing\": {" >> "$OUTPUT_FILE"
+    
+    # Extract default gateway
+    local gateway=$(ip route show default | awk '/default/ {print $3}')
+    echo "      \"default_gateway\": \"$gateway\"," >> "$OUTPUT_FILE"
+
+    # Get all routes in JSON format
+    echo -n "      \"routes\": " >> "$OUTPUT_FILE"
+    if command -v ip >/dev/null 2>&1 && command -v jq >/dev/null 2>&1; then
+        ip -j route show | jq -c '.' >> "$OUTPUT_FILE"
+    else
+        echo "[]" >> "$OUTPUT_FILE"
+    fi
+
     echo "    }" >> "$OUTPUT_FILE"
     echo "  }," >> "$OUTPUT_FILE"
 }
-
