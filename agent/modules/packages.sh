@@ -2,27 +2,34 @@
 
 packages_info() {
     echo "  \"packages\": {" >> "$OUTPUT_FILE"
-    if [ -x "$(command -v dpkg)" ]; then
-        echo "    \"package_manager\": \"dpkg\"," >> "$OUTPUT_FILE"
-        echo "    \"list\": [" >> "$OUTPUT_FILE"
-        dpkg -l | awk 'NR>5 {print $2" "$3}' | while read -r pkg version; do
-            echo "      {\"name\": \"$(escape_json "$pkg")\", \"version\": \"$(escape_json "$version")\"}," >> "$OUTPUT_FILE"
-        done
-    elif [ -x "$(command -v rpm)" ]; then
-        echo "    \"package_manager\": \"rpm\"," >> "$OUTPUT_FILE"
-        echo "    \"list\": [" >> "$OUTPUT_FILE"
-        rpm -qa --queryformat '%{NAME} %{VERSION}\n' | while read -r pkg version; do
-            echo "      {\"name\": \"$(escape_json "$pkg")\", \"version\": \"$(escape_json "$version")\"}," >> "$OUTPUT_FILE"
-        done
+
+    # Detect the package manager
+    if command -v dpkg >/dev/null 2>&1; then
+        manager="dpkg"
+        cmd="dpkg-query -W -f='    {\"name\": \"\${Package}\", \"version\": \"\${Version}\"},\n'"
+    elif command -v rpm >/dev/null 2>&1; then
+        manager="rpm"
+        cmd="rpm -qa --queryformat '    {\"name\": \"%{NAME}\", \"version\": \"%{VERSION}\"},\n'"
+    elif command -v pacman >/dev/null 2>&1; then
+        manager="pacman"
+        # Arch Linux: -Q lists packages, awk formats it
+        cmd="pacman -Q | awk '{print \"    {\\\"name\\\": \\\"\"\$1\"\\\", \\\"version\\\": \\\"\"\$2\"\\\"},\"}'"
+    elif command -v apk >/dev/null 2>&1; then
+        manager="apk"
+        # Alpine: info -v lists name and version
+        cmd="apk info -v | awk -F'-' '{v=\$NF; sub(\"-\"v, \"\"); print \"    {\\\"name\\\": \\\"\"\$0\"\\\", \\\"version\\\": \\\"\"v\"\\\"},\"}'"
     else
-        echo "    \"package_manager\": \"unknown\"," >> "$OUTPUT_FILE"
-        echo "    \"list\": []" >> "$OUTPUT_FILE"
+        manager="unknown"
     fi
-    # Remove trailing comma from last package entry if needed
-    if [ -x "$(command -v dpkg)" ] || [ -x "$(command -v rpm)" ]; then
-        sed -i '$ s/,$//' "$OUTPUT_FILE" 2>/dev/null
-        echo "    ]" >> "$OUTPUT_FILE"
+
+    echo "    \"package_manager\": \"$manager\"," >> "$OUTPUT_FILE"
+    echo "    \"list\": [" >> "$OUTPUT_FILE"
+
+    if [ "$manager" != "unknown" ]; then
+        # Execute the command and trim the trailing comma from the last line
+        eval "$cmd" | sed '$ s/,$//' >> "$OUTPUT_FILE"
     fi
+
+    echo "    ]" >> "$OUTPUT_FILE"
     echo "  }," >> "$OUTPUT_FILE"
 }
-
