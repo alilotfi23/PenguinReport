@@ -2,13 +2,12 @@
 
 kernel_modules_info() {
     echo "  \"kernel_modules\": [" >> "$OUTPUT_FILE"
+
     if [ -f /proc/modules ]; then
-        awk '{print $1}' /proc/modules | while read -r module; do
-            echo "    \"$(escape_json "$module")\"," >> "$OUTPUT_FILE"
-        done
-        # Remove trailing comma from last module entry
-        sed -i '$ s/,$//' "$OUTPUT_FILE" 2>/dev/null
+        awk '{
+            printf "    {\"name\": \"%s\", \"size\": %d, \"used_by\": %d},\n", $1, $2, $3
+        }' /proc/modules | sed '$ s/,$//' >> "$OUTPUT_FILE"
     fi
+
     echo "  ]," >> "$OUTPUT_FILE"
 }
-
