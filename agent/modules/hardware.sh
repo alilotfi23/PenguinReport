@@ -3,42 +3,39 @@
 hardware_info() {
     echo "  \"hardware\": {" >> "$OUTPUT_FILE"
     echo "    \"dmi\": {" >> "$OUTPUT_FILE"
-    if [ -f /sys/class/dmi/id/product_name ]; then
-        echo "      \"product_name\": \"$(escape_json "$(cat /sys/class/dmi/id/product_name)")\"," >> "$OUTPUT_FILE"
-        echo "      \"product_version\": \"$(escape_json "$(cat /sys/class/dmi/id/product_version)")\"," >> "$OUTPUT_FILE"
-        echo "      \"product_serial\": \"$(escape_json "$(cat /sys/class/dmi/id/product_serial)")\"," >> "$OUTPUT_FILE"
-        echo "      \"product_uuid\": \"$(escape_json "$(cat /sys/class/dmi/id/product_uuid)")\"," >> "$OUTPUT_FILE"
-        echo "      \"bios_vendor\": \"$(escape_json "$(cat /sys/class/dmi/id/bios_vendor)")\"," >> "$OUTPUT_FILE"
-        echo "      \"bios_version\": \"$(escape_json "$(cat /sys/class/dmi/id/bios_version)")\"," >> "$OUTPUT_FILE"
-        echo "      \"bios_date\": \"$(escape_json "$(cat /sys/class/dmi/id/bios_date)")\"" >> "$OUTPUT_FILE"
-    else
-        echo "      \"product_name\": \"N/A\"," >> "$OUTPUT_FILE"
-        echo "      \"product_version\": \"N/A\"," >> "$OUTPUT_FILE"
-        echo "      \"product_serial\": \"N/A\"," >> "$OUTPUT_FILE"
-        echo "      \"product_uuid\": \"N/A\"," >> "$OUTPUT_FILE"
-        echo "      \"bios_vendor\": \"N/A\"," >> "$OUTPUT_FILE"
-        echo "      \"bios_version\": \"N/A\"," >> "$OUTPUT_FILE"
-        echo "      \"bios_date\": \"N/A\"" >> "$OUTPUT_FILE"
-    fi
+    local dmi_dir="/sys/class/dmi/id"
+    read_dmi() {
+        if [ -r "$dmi_dir/$1" ]; then
+            escape_json "$(cat "$dmi_dir/$1")"
+        else
+            echo "Permission Denied/NA"
+        fi
+    }
+
+    cat <<EOF >> "$OUTPUT_FILE"
+      "product_name": "$(read_dmi product_name)",
+      "product_version": "$(read_dmi product_version)",
+      "product_serial": "$(read_dmi product_serial)",
+      "product_uuid": "$(read_dmi product_uuid)",
+      "bios_vendor": "$(read_dmi bios_vendor)",
+      "bios_version": "$(read_dmi bios_version)",
+      "bios_date": "$(read_dmi bios_date)"
+EOF
     echo "    }," >> "$OUTPUT_FILE"
+
+    # 2. USB Devices (using awk to avoid the trailing comma loop)
     echo "    \"usb_devices\": [" >> "$OUTPUT_FILE"
     if command -v lsusb >/dev/null 2>&1; then
-        lsusb 2>/dev/null | while read -r line; do
-            echo "      \"$(escape_json "$line")\"," >> "$OUTPUT_FILE"
-        done
-        # Remove trailing comma from last USB device entry if any
-        sed -i '$ s/,$//' "$OUTPUT_FILE" 2>/dev/null
+        lsusb | awk '{printf "      \"%s\",\n", $0}' | sed '$ s/,$//' >> "$OUTPUT_FILE"
     fi
     echo "    ]," >> "$OUTPUT_FILE"
+
+    # 3. PCI Devices
     echo "    \"pci_devices\": [" >> "$OUTPUT_FILE"
     if command -v lspci >/dev/null 2>&1; then
-        lspci 2>/dev/null | while read -r line; do
-            echo "      \"$(escape_json "$line")\"," >> "$OUTPUT_FILE"
-        done
-        # Remove trailing comma from last PCI device entry if any
-        sed -i '$ s/,$//' "$OUTPUT_FILE" 2>/dev/null
+        lspci | awk '{printf "      \"%s\",\n", $0}' | sed '$ s/,$//' >> "$OUTPUT_FILE"
     fi
     echo "    ]" >> "$OUTPUT_FILE"
+
     echo "  }," >> "$OUTPUT_FILE"
 }
-
