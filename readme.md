@@ -28,6 +28,53 @@ PenguinReport collects and outputs the following information in structured JSON:
 - ✅ System Uptime
 - ✅ Running Processes Summary
 - ✅ SELinux/AppArmor Status (if applicable)
+---
+
+## 🛠 Project Structure & Modular Architecture
+
+This agent utilizes a decoupled architecture, separating the core execution logic from specific data collection tasks. This makes the agent lightweight, easy to debug, and simple to extend.
+
+```text
+agent/
+├── agent.sh           # Main entry point; orchestrates module execution
+├── lib/
+│   └── json.sh        # Shared helper functions (JSON escaping, formatting)
+└── modules/           # Individual data collection scripts
+    ├── cpu.sh             # Processor specs and topology
+    ├── datetime.sh        # System uptime and synchronization
+    ├── disk.sh            # Physical disk health and I/O
+    ├── environment.sh     # Shell environment and exported variables
+    ├── filesystem.sh      # Mount points and usage (df -hPT)
+    ├── hardware.sh        # DMI, PCI, and USB device inventory
+    ├── kernel_modules.sh  # Loaded LKM (Linux Kernel Modules)
+    ├── memory.sh          # RAM/Swap breakdown via /proc/meminfo
+    ├── network.sh         # Interfaces, IP addresses, and routing
+    ├── packages.sh        # Installed package count and updates
+    ├── performance.sh     # Real-time CPU/Mem load and process counts
+    ├── security.sh        # SSH, Sudoers, and MAC (SELinux/AppArmor)
+    ├── services.sh        # Systemd/Upstart service status
+    ├── system.sh          # OS, Kernel version, and Hostname
+    └── users.sh           # Human users and UID tracking
+
+```
+
+### 🚀 How it Works
+
+1. **`agent.sh`** initializes the output file and sources the library helpers.
+2. It dynamically loops through or explicitly calls functions defined in the **`modules/*.sh`** files.
+3. Each module writes its specific key-pair to the global `OUTPUT_FILE`.
+4. The final output is a single, valid JSON object ready for ingestion by ELK, Grafana, or a custom API.
+
+### ➕ Adding New Modules
+
+To add a new data category (e.g., `gpu.sh` or `docker.sh`):
+
+1. Create a new `.sh` file in the `modules/` directory.
+2. Define your collection function.
+3. Call the function in `agent.sh`.
+4. Ensure you use the `escape_json` helper from `lib/json.sh` for any string data to prevent breaking the JSON structure.
+
+---
 
 Example Output :
 
