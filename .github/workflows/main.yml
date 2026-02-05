@@ -1,0 +1,56 @@
+name: Server Info Agent Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  build_and_release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+
+      - name: Make agent executable
+        run: chmod +x agent/agent.sh
+
+      - name: Run server info agent
+        run: |
+          cd agent
+          ./agent.sh
+          ls -lh *.json
+
+      - name: Validate generated JSON
+        run: |
+          cd agent
+          FILE=$(ls server_info_*.json | head -n1)
+          jq . "$FILE" > /dev/null
+
+      # semantic-release
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+
+      - name: Install semantic-release
+        run: |
+          npm install -g semantic-release \
+            @semantic-release/changelog \
+            @semantic-release/git
+
+      - name: Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx semantic-release
