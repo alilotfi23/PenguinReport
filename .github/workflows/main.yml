@@ -35,7 +35,7 @@ jobs:
       - name: Validate generated JSON
         run: |
           cd agent
-          FILE=$(ls server_info_*.json | head -n1)
+          FILE=$(ls *.json | head -n1)
           jq . "$FILE" > /dev/null
 
       # semantic-release
