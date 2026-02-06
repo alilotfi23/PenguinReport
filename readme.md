@@ -109,6 +109,16 @@ Example Output :
 
 ## 🛠️ Usage
 
+### Installation
+
+```bash
+git clone https://github.com/alilotfi23/penguinreport.git
+cd penguinreport
+chmod +x agent.sh
+./agent.sh --light
+
+```
+
 ### Quick Run (Default Light Mode)
 
 ```bash
@@ -120,16 +130,6 @@ Example Output :
 
 ```bash
 ./agent.sh --full
-
-```
-
-### Installation
-
-```bash
-git clone https://github.com/alilotfi23/penguinreport.git
-cd penguinreport
-chmod +x agent.sh
-./agent.sh --light
 
 ```
 
